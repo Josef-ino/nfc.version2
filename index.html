@@ -2,45 +2,259 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>NFC Terminál</title>
-  <link rel="stylesheet" href="style.css">
+  <title>NFC Terminál V2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #0af;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #screen {
+      background: #000;
+      border: 3px solid #0af;
+      border-radius: 12px;
+      padding: 20px;
+      width: 320px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #balance {
+      font-size: 26px;
+      margin: 10px 0;
+    }
+    #status {
+      font-size: 16px;
+      color: #0af;
+      min-height: 24px;
+      margin-top: 10px;
+    }
+    #amountInput {
+      font-size: 28px;
+      text-align: center;
+      border: 2px solid #0af;
+      border-radius: 8px;
+      padding: 8px;
+      margin: 10px 0;
+      width: 180px;
+      background: #111;
+      color: #0af;
+    }
+    #keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 220px;
+      margin-bottom: 15px;
+    }
+    .key {
+      background: #0af;
+      color: #000;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .key:active { background: #06c; }
+    #controls {
+      display: flex;
+      gap: 10px;
+    }
+    button.action {
+      background: #0af;
+      color: #000;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 130px;
+    }
+    button.action:active { background: #06c; }
+    #startNFC {
+      background: #0af;
+      color: #000;
+      font-size: 20px;
+      font-weight: bold;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    #startNFC:active { background: #06c; }
+  </style>
 </head>
 <body>
-  <button id="themeToggle">🌙</button>
+  <div id="screen">
+    <div>Zůstatek:</div>
+    <div id="balance">?</div>
+    <input id="amountInput" type="text" readonly placeholder="0 Kč">
+    <div id="status"></div>
+  </div>
 
-  <main class="card">
-    <h1>NFC Terminál</h1>
+  <div id="keypad">
+    <button class="key" onclick="pressKey('1')">1</button>
+    <button class="key" onclick="pressKey('2')">2</button>
+    <button class="key" onclick="pressKey('3')">3</button>
+    <button class="key" onclick="pressKey('4')">4</button>
+    <button class="key" onclick="pressKey('5')">5</button>
+    <button class="key" onclick="pressKey('6')">6</button>
+    <button class="key" onclick="pressKey('7')">7</button>
+    <button class="key" onclick="pressKey('8')">8</button>
+    <button class="key" onclick="pressKey('9')">9</button>
+    <button class="key" onclick="clearInput()">C</button>
+    <button class="key" onclick="pressKey('0')">0</button>
+    <button class="key" onclick="backspace()">⌫</button>
+  </div>
 
-    <p class="lead">Zůstatek:</p>
-    <div id="balance" class="balance">20 Kč</div>
+  <div id="controls">
+    <button class="action" onclick="startPayment()">Zaplatit</button>
+    <button class="action" onclick="startTopUp()">Dobít</button>
+  </div>
 
-    <input id="amountInput" type="text" readonly placeholder="0 Kč" />
+  <button id="startNFC">Zapnout NFC</button>
 
-    <div id="status" class="status"></div>
+  <script>
+    let ndef;
+    let balance = null;
+    let currency = "CZK";
+    let pendingAction = null; // "pay" nebo "topup"
+    let amount = 0;
 
-    <div id="keypad" class="keypad">
-      <button class="key" data-key="1">1</button>
-      <button class="key" data-key="2">2</button>
-      <button class="key" data-key="3">3</button>
-      <button class="key" data-key="4">4</button>
-      <button class="key" data-key="5">5</button>
-      <button class="key" data-key="6">6</button>
-      <button class="key" data-key="7">7</button>
-      <button class="key" data-key="8">8</button>
-      <button class="key" data-key="9">9</button>
-      <button class="key actionKey" data-action="clear">C</button>
-      <button class="key" data-key="0">0</button>
-      <button class="key actionKey" data-action="backspace">⌫</button>
-    </div>
+    function log(msg) {
+      document.getElementById("status").textContent = msg;
+    }
 
-    <div id="controls" class="controls">
-      <button class="action primary" id="payBtn" disabled>💳 Zaplatit</button>
-      <button class="action secondary" id="topupBtn" disabled>➕ Dobít</button>
-    </div>
+    function updateDisplay() {
+      document.getElementById("balance").textContent =
+        (balance !== null ? balance : "?") + " " + currency;
+    }
 
-    <button id="startNFC" class="nfcBtn">📡 Zapnout NFC</button>
-  </main>
+    async function initNFC() {
+      if (!("NDEFReader" in window)) {
+        log("❌ NFC není podporováno v tomto prohlížeči.");
+        return;
+      }
+      ndef = new NDEFReader();
+      try {
+        await ndef.scan();
+        log("📡 Přiložte kartu...");
+        ndef.onreading = event => handleReading(event);
+      } catch (err) {
+        log("⚠️ NFC zamítnuto: " + err);
+      }
+    }
 
-  <script src="script.js"></script>
+    function handleReading(event) {
+      let found = false;
+      for (const record of event.message.records) {
+        if (record.mediaType === "application/json") {
+          const json = new TextDecoder().decode(record.data);
+          try {
+            const obj = JSON.parse(json);
+            if (obj.c && typeof obj.b === "number") {
+              currency = obj.c;
+              balance = obj.b;
+              found = true;
+            }
+          } catch {}
+        }
+      }
+
+      if (!found) {
+        balance = 20; // defaultní kredit
+        currency = "CZK";
+        writeCard(balance, currency);
+        log("💳 Karta inicializována (20 Kč).");
+      } else {
+        log("✅ Karta načtena.");
+      }
+      updateDisplay();
+
+      if (pendingAction) {
+        if (pendingAction === "pay") {
+          if (balance >= amount) {
+            balance -= amount;
+            writeCard(balance, currency);
+            log("✅ Platba " + amount + " Kč proběhla.");
+          } else {
+            log("❌ Nedostatek prostředků!");
+          }
+        } else if (pendingAction === "topup") {
+          balance += amount;
+          writeCard(balance, currency);
+          log("✅ Dobito " + amount + " Kč.");
+        }
+        updateDisplay();
+        pendingAction = null;
+        clearInput();
+      }
+    }
+
+    async function writeCard(bal, cur) {
+      const payload = JSON.stringify({ c: cur, b: bal });
+      const bytes = new TextEncoder().encode(payload);
+      try {
+        await ndef.write({
+          records: [
+            { recordType: "mime", mediaType: "application/json", data: bytes }
+          ]
+        });
+      } catch (err) {
+        log("⚠️ Chyba zápisu: " + err);
+      }
+    }
+
+    function getAmount() {
+      const val = parseInt(document.getElementById("amountInput").value);
+      return isNaN(val) || val <= 0 ? null : val;
+    }
+
+    function startPayment() {
+      const val = getAmount();
+      if (!val) {
+        log("Zadejte částku!");
+        return;
+      }
+      pendingAction = "pay";
+      amount = val;
+      log("💸 Přiložte kartu k zaplacení " + val + " Kč...");
+    }
+
+    function startTopUp() {
+      const val = getAmount();
+      if (!val) {
+        log("Zadejte částku!");
+        return;
+      }
+      pendingAction = "topup";
+      amount = val;
+      log("💰 Přiložte kartu k dobití " + val + " Kč...");
+    }
+
+    // --- Keypad funkce ---
+    function pressKey(digit) {
+      const input = document.getElementById("amountInput");
+      input.value = input.value === "0" ? digit : input.value + digit;
+    }
+    function clearInput() {
+      document.getElementById("amountInput").value = "";
+    }
+    function backspace() {
+      const input = document.getElementById("amountInput");
+      input.value = input.value.slice(0, -1);
+    }
+
+    document.getElementById("startNFC").addEventListener("click", initNFC);
+  </script>
 </body>
 </html>
