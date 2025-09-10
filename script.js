@@ -1,5 +1,3 @@
-// ... původní kód (NFC logika atd.)
-
 // --- Theme toggle ---
 const themeToggle = document.getElementById("themeToggle");
 themeToggle.addEventListener("click", () => {
@@ -14,3 +12,6 @@ if (window.matchMedia("(prefers-color-scheme: light)").matches) {
 } else {
   themeToggle.textContent = "☀️";
 }
+
+// --- Zde může být NFC logika a práce s tlačítky ---
+
