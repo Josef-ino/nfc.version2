@@ -5,7 +5,6 @@ themeToggle.addEventListener("click", () => {
   themeToggle.textContent = document.body.classList.contains("light") ? "🌙" : "☀️";
 });
 
-// Načtení preferencí uživatele
 if (window.matchMedia("(prefers-color-scheme: light)").matches) {
   document.body.classList.add("light");
   themeToggle.textContent = "🌙";
@@ -13,17 +12,19 @@ if (window.matchMedia("(prefers-color-scheme: light)").matches) {
   themeToggle.textContent = "☀️";
 }
 
-// --- Klávesnice a částka ---
+// --- Logika terminálu ---
 const amountInput = document.getElementById("amountInput");
+const balanceEl = document.getElementById("balance");
 const payBtn = document.getElementById("payBtn");
 const topupBtn = document.getElementById("topupBtn");
 const status = document.getElementById("status");
 
 let currentValue = "";
+let balance = 20; // výchozí zůstatek 20 Kč
 
-// funkce pro aktualizaci UI
 function updateUI() {
   amountInput.value = currentValue ? currentValue + " Kč" : "0 Kč";
+  balanceEl.textContent = balance + " Kč";
 
   const value = parseInt(currentValue || "0", 10);
   if (value > 0) {
@@ -35,15 +36,14 @@ function updateUI() {
   }
 }
 
-// obsluha kliknutí na klávesy
+// klávesnice
 document.querySelectorAll(".key").forEach(btn => {
   btn.addEventListener("click", () => {
     const key = btn.dataset.key;
     const action = btn.dataset.action;
 
     if (key) {
-      // číslo
-      if (currentValue.length < 6) { // max 6 číslic
+      if (currentValue.length < 6) {
         currentValue += key;
       }
     } else if (action === "clear") {
@@ -51,23 +51,32 @@ document.querySelectorAll(".key").forEach(btn => {
     } else if (action === "backspace") {
       currentValue = currentValue.slice(0, -1);
     }
-
     updateUI();
   });
 });
 
-// tlačítka Zaplatit a Dobít
+// platba
 payBtn.addEventListener("click", () => {
-  status.textContent = `✅ Zaplaceno ${amountInput.value}`;
+  const value = parseInt(currentValue || "0", 10);
+  if (value > 0 && balance >= value) {
+    balance -= value;
+    status.textContent = `✅ Zaplaceno ${value} Kč`;
+  } else if (value > 0 && balance < value) {
+    status.textContent = `❌ Nedostatek kreditu!`;
+  }
   currentValue = "";
   updateUI();
 });
 
+// dobití
 topupBtn.addEventListener("click", () => {
-  status.textContent = `💰 Dobito ${amountInput.value}`;
+  const value = parseInt(currentValue || "0", 10);
+  if (value > 0) {
+    balance += value;
+    status.textContent = `💰 Dobito ${value} Kč`;
+  }
   currentValue = "";
   updateUI();
 });
 
-// inicializace
 updateUI();
