@@ -1,279 +1,188 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>NFC Terminál V2</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
-
-    h1 {
-      font-size: 36px;
-      margin-bottom: 30px;
-      color: #0af;
-      text-align: center;
-    }
-
-    .card {
-      background: #111;
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 0 25px rgba(0, 170, 255, 0.2);
-      text-align: center;
-    }
-
-    #screen {
-      width: 360px;
-    }
-
-    #balance {
-      font-size: 32px;
-      font-weight: bold;
-      margin: 15px 0;
-      color: #0af;
-    }
-
-    #status {
-      font-size: 16px;
-      color: #bbb;
-      min-height: 28px;
-      margin-top: 12px;
-    }
-
-    #amountInput {
-      font-size: 28px;
-      text-align: center;
-      border: 2px solid #0af;
-      border-radius: 14px;
-      padding: 12px;
-      margin: 20px 0;
-      width: 220px;
-      background: #000;
-      color: #0af;
-    }
-
-    #keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      width: 260px;
-      margin: 0 auto 25px auto;
-    }
-
-    .key {
-      background: #0af;
-      color: #000;
-      font-size: 22px;
-      font-weight: bold;
-      padding: 18px;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 0 12px rgba(0,170,255,0.3);
-    }
-    .key:active {
-      background: #06c;
-      transform: scale(0.95);
-    }
-
-    #controls {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 15px;
-    }
-
-    button.action,
-    #startNFC {
-      background: #0af;
-      color: #000;
-      font-size: 18px;
-      font-weight: bold;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 0 15px rgba(0,170,255,0.3);
-    }
-    button.action:active,
-    #startNFC:active {
-      background: #06c;
-      transform: scale(0.95);
-    }
-
-    #startNFC {
-      margin-top: 25px;
-      font-size: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>NFC Terminál V2 - beta</title>
+<style>
+  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:#0a0a0a; color:#fff; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:40px 20px; }
+  h1 { font-size:36px; margin-bottom:30px; color:#0af; text-align:center; }
+  .card { background:#111; border-radius:20px; padding:25px; margin-bottom:25px; box-shadow:0 0 25px rgba(0,170,255,0.2); text-align:center; }
+  #screen { width:360px; }
+  #balance { font-size:32px; font-weight:bold; margin:15px 0; color:#0af; }
+  #status { font-size:16px; color:#bbb; min-height:28px; margin-top:12px; }
+  #amountInput { font-size:28px; text-align:center; border:2px solid #0af; border-radius:14px; padding:12px; margin:20px 0; width:220px; background:#000; color:#0af; }
+  #keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:260px; margin:0 auto 25px auto; }
+  .key { background:#0af; color:#000; font-size:22px; font-weight:bold; padding:18px; border:none; border-radius:16px; cursor:pointer; transition: background 0.2s, transform 0.1s; box-shadow:0 0 12px rgba(0,170,255,0.3); }
+  .key:active { background:#06c; transform:scale(0.95); }
+  #controls { display:flex; justify-content:center; gap:20px; margin-top:15px; }
+  button.action, #startNFC { background:#0af; color:#000; font-size:18px; font-weight:bold; padding:14px 24px; border:none; border-radius:16px; cursor:pointer; transition: background 0.2s, transform 0.1s; box-shadow:0 0 15px rgba(0,170,255,0.3); }
+  button.action:active, #startNFC:active { background:#06c; transform:scale(0.95); }
+  #startNFC { margin-top:25px; font-size:20px; }
+</style>
 </head>
 <body>
-  <h1>NFC Terminál V2</h1>
+<h1>NFC Terminál Demo (šifrovaný)</h1>
 
-  <div class="card" id="screen">
-    <div>Zůstatek:</div>
-    <div id="balance">?</div>
-    <input id="amountInput" type="text" readonly placeholder="0 Kč">
-    <div id="status"></div>
+<div class="card" id="screen">
+  <div>Zůstatek:</div>
+  <div id="balance">?</div>
+  <input id="amountInput" type="text" readonly placeholder="0 Kč">
+  <div id="status"></div>
+</div>
+
+<div class="card">
+  <div id="keypad">
+    <button class="key" onclick="pressKey('1')">1</button>
+    <button class="key" onclick="pressKey('2')">2</button>
+    <button class="key" onclick="pressKey('3')">3</button>
+    <button class="key" onclick="pressKey('4')">4</button>
+    <button class="key" onclick="pressKey('5')">5</button>
+    <button class="key" onclick="pressKey('6')">6</button>
+    <button class="key" onclick="pressKey('7')">7</button>
+    <button class="key" onclick="pressKey('8')">8</button>
+    <button class="key" onclick="pressKey('9')">9</button>
+    <button class="key" onclick="clearInput()">C</button>
+    <button class="key" onclick="pressKey('0')">0</button>
+    <button class="key" onclick="backspace()">⌫</button>
   </div>
-
-  <div class="card">
-    <div id="keypad">
-      <button class="key" onclick="pressKey('1')">1</button>
-      <button class="key" onclick="pressKey('2')">2</button>
-      <button class="key" onclick="pressKey('3')">3</button>
-      <button class="key" onclick="pressKey('4')">4</button>
-      <button class="key" onclick="pressKey('5')">5</button>
-      <button class="key" onclick="pressKey('6')">6</button>
-      <button class="key" onclick="pressKey('7')">7</button>
-      <button class="key" onclick="pressKey('8')">8</button>
-      <button class="key" onclick="pressKey('9')">9</button>
-      <button class="key" onclick="clearInput()">C</button>
-      <button class="key" onclick="pressKey('0')">0</button>
-      <button class="key" onclick="backspace()">⌫</button>
-    </div>
-
-    <div id="controls">
-      <button class="action" onclick="startPayment()">Zaplatit</button>
-      <button class="action" onclick="startTopUp()">Dobít</button>
-    </div>
+  <div id="controls">
+    <button class="action" onclick="startPayment()">Zaplatit</button>
+    <button class="action" onclick="startTopUp()">Dobít</button>
   </div>
+</div>
 
-  <button id="startNFC">Zapnout NFC</button>
+<button id="startNFC">Zapnout NFC</button>
 
-  <script>
-    let ndef;
-    let balance = null;
-    let currency = "CZK";
-    let pendingAction = null;
-    let amount = 0;
+<script>
+let ndef;
+let balance = null;
+let currency = "CZK";
+let pendingAction = null;
+let amount = 0;
+const SECRET_KEY = "demo123"; // tajný klíč pro XOR šifru
 
-    function log(msg) {
-      document.getElementById("status").textContent = msg;
-    }
+function log(msg, success=true) {
+  const statusEl = document.getElementById("status");
+  statusEl.textContent = msg;
+  statusEl.style.color = success ? "#0f0" : "#f33";
+}
 
-    function updateDisplay() {
-      document.getElementById("balance").textContent =
-        (balance !== null ? balance : "?") + " " + currency;
-    }
+function updateDisplay() {
+  document.getElementById("balance").textContent =
+    (balance !== null ? balance : "?") + " " + currency;
+}
 
-    async function initNFC() {
-      if (!("NDEFReader" in window)) {
-        log("NFC není podporováno v tomto prohlížeči.");
-        return;
-      }
-      ndef = new NDEFReader();
+// jednoduché XOR šifrování
+function xorEncrypt(str, key) {
+  return Array.from(str).map((c,i)=>String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i%key.length))).join('');
+}
+
+function xorDecrypt(str, key) {
+  return xorEncrypt(str,key); // XOR je symetrický
+}
+
+async function initNFC() {
+  if(!("NDEFReader" in window)) { log("NFC není podporováno v tomto prohlížeči.", false); return; }
+  ndef = new NDEFReader();
+  try {
+    await ndef.scan();
+    log("Přiložte kartu...");
+    ndef.onreading = event => handleReading(event);
+  } catch(err) {
+    log("NFC zamítnuto: "+err,false);
+  }
+}
+
+function handleReading(event) {
+  let found = false;
+  for(const record of event.message.records){
+    if(record.mediaType==="application/json"){
+      const encrypted = new TextDecoder().decode(record.data);
       try {
-        await ndef.scan();
-        log("Přiložte kartu...");
-        ndef.onreading = event => handleReading(event);
-      } catch (err) {
-        log("NFC zamítnuto: " + err);
-      }
-    }
-
-    function handleReading(event) {
-      let found = false;
-      for (const record of event.message.records) {
-        if (record.mediaType === "application/json") {
-          const json = new TextDecoder().decode(record.data);
-          try {
-            const obj = JSON.parse(json);
-            if (obj.c && typeof obj.b === "number") {
-              currency = obj.c;
-              balance = obj.b;
-              found = true;
-            }
-          } catch {}
+        const decrypted = xorDecrypt(encrypted, SECRET_KEY);
+        const obj = JSON.parse(decrypted);
+        if(obj.c && typeof obj.b==="number"){
+          currency = obj.c;
+          balance = obj.b;
+          found = true;
         }
-      }
-
-      if (!found) {
-        balance = 20;
-        currency = "CZK";
-        writeCard(balance, currency);
-        log("Karta inicializována (20 Kč).");
-      } else {
-        log("Karta načtena.");
-      }
-      updateDisplay();
-
-      if (pendingAction) {
-        if (pendingAction === "pay") {
-          if (balance >= amount) {
-            balance -= amount;
-            writeCard(balance, currency);
-            log("Platba " + amount + " Kč proběhla.");
-          } else {
-            log("Nedostatek prostředků!");
-          }
-        } else if (pendingAction === "topup") {
-          balance += amount;
-          writeCard(balance, currency);
-          log("Dobito " + amount + " Kč.");
-        }
-        updateDisplay();
-        pendingAction = null;
-        clearInput();
-      }
+      } catch{}
     }
+  }
 
-    async function writeCard(bal, cur) {
-      const payload = JSON.stringify({ c: cur, b: bal });
-      const bytes = new TextEncoder().encode(payload);
-      try {
-        await ndef.write({
-          records: [
-            { recordType: "mime", mediaType: "application/json", data: bytes }
-          ]
-        });
-      } catch (err) {
-        log("Chyba zápisu: " + err);
-      }
-    }
+  if(!found){
+    balance = 20;
+    currency = "CZK";
+    writeCard(balance,currency);
+    log("Karta inicializována (20 Kč).");
+  } else {
+    log("Karta načtena.");
+  }
+  updateDisplay();
 
-    function getAmount() {
-      const val = parseInt(document.getElementById("amountInput").value);
-      return isNaN(val) || val <= 0 ? null : val;
+  if(pendingAction){
+    if(pendingAction==="pay"){
+      if(balance >= amount){
+        balance -= amount;
+        writeCard(balance,currency);
+        log("Platba "+amount+" Kč proběhla.");
+      } else log("Nedostatek prostředků!",false);
+    } else if(pendingAction==="topup"){
+      balance += amount;
+      writeCard(balance,currency);
+      log("Dobito "+amount+" Kč.");
     }
+    updateDisplay();
+    pendingAction = null;
+    clearInput();
+  }
+}
 
-    function startPayment() {
-      const val = getAmount();
-      if (!val) { log("Zadejte částku!"); return; }
-      pendingAction = "pay"; amount = val;
-      log("Přiložte kartu k zaplacení " + val + " Kč...");
-    }
+async function writeCard(bal,cur){
+  const payload = JSON.stringify({c:cur,b:bal});
+  const encrypted = xorEncrypt(payload,SECRET_KEY);
+  const bytes = new TextEncoder().encode(encrypted);
+  try{
+    await ndef.write({
+      records:[{recordType:"mime",mediaType:"application/json",data:bytes}]
+    });
+  }catch(err){
+    log("Chyba zápisu: "+err,false);
+  }
+}
 
-    function startTopUp() {
-      const val = getAmount();
-      if (!val) { log("Zadejte částku!"); return; }
-      pendingAction = "topup"; amount = val;
-      log("Přiložte kartu k dobití " + val + " Kč...");
-    }
+function getAmount(){
+  const val = parseInt(document.getElementById("amountInput").value);
+  return isNaN(val)||val<=0?null:val;
+}
 
-    function pressKey(digit) {
-      const input = document.getElementById("amountInput");
-      input.value = input.value === "0" ? digit : input.value + digit;
-    }
-    function clearInput() { document.getElementById("amountInput").value = ""; }
-    function backspace() {
-      const input = document.getElementById("amountInput");
-      input.value = input.value.slice(0, -1);
-    }
+function startPayment(){
+  const val = getAmount();
+  if(!val){ log("Zadejte částku!",false); return; }
+  pendingAction="pay"; amount=val;
+  log("Přiložte kartu k zaplacení "+val+" Kč...");
+}
 
-    document.getElementById("startNFC").addEventListener("click", initNFC);
-  </script>
+function startTopUp(){
+  const val = getAmount();
+  if(!val){ log("Zadejte částku!",false); return; }
+  pendingAction="topup"; amount=val;
+  log("Přiložte kartu k dobití "+val+" Kč...");
+}
+
+function pressKey(digit){
+  const input = document.getElementById("amountInput");
+  input.value = input.value==="0"?digit:input.value+digit;
+}
+
+function clearInput(){ document.getElementById("amountInput").value=""; }
+
+function backspace(){
+  const input = document.getElementById("amountInput");
+  input.value = input.value.slice(0,-1);
+}
+
+document.getElementById("startNFC").addEventListener("click",initNFC);
+</script>
 </body>
 </html>
