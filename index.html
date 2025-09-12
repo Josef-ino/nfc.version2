@@ -5,9 +5,9 @@
   <title>NFC Terminál V2</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #0af;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+      color: #e0e0e0;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -15,43 +15,53 @@
       height: 100vh;
       margin: 0;
     }
+
     #screen {
-      background: #000;
-      border: 3px solid #0af;
-      border-radius: 12px;
+      background: #111;
+      border: 2px solid #0af;
+      border-radius: 16px;
       padding: 20px;
-      width: 320px;
+      width: 340px;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
     }
+
     #balance {
-      font-size: 26px;
+      font-size: 32px;
+      font-weight: bold;
       margin: 10px 0;
+      color: #0af;
     }
+
     #status {
       font-size: 16px;
-      color: #0af;
+      color: #aaa;
       min-height: 24px;
       margin-top: 10px;
     }
+
     #amountInput {
       font-size: 28px;
       text-align: center;
       border: 2px solid #0af;
-      border-radius: 8px;
-      padding: 8px;
-      margin: 10px 0;
-      width: 180px;
-      background: #111;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 15px 0;
+      width: 200px;
+      background: #000;
       color: #0af;
+      box-shadow: inset 0 0 10px rgba(0,170,255,0.4);
     }
+
     #keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      width: 220px;
-      margin-bottom: 15px;
+      gap: 12px;
+      width: 240px;
+      margin-bottom: 20px;
     }
+
     .key {
       background: #0af;
       color: #000;
@@ -59,38 +69,60 @@
       font-weight: bold;
       padding: 15px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+      box-shadow: 0 4px 10px rgba(0,170,255,0.4);
     }
-    .key:active { background: #06c; }
+    .key:active {
+      background: #06c;
+      transform: scale(0.95);
+    }
+
     #controls {
       display: flex;
-      gap: 10px;
+      gap: 15px;
+      margin-top: 10px;
     }
+
     button.action {
       background: #0af;
       color: #000;
       font-size: 18px;
       font-weight: bold;
-      padding: 12px 20px;
+      padding: 14px 24px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
-      width: 130px;
+      width: 140px;
+      transition: transform 0.1s, background 0.2s;
+      box-shadow: 0 4px 15px rgba(0,170,255,0.4);
     }
-    button.action:active { background: #06c; }
+    button.action:active {
+      background: #06c;
+      transform: scale(0.95);
+    }
+
     #startNFC {
-      background: #0af;
-      color: #000;
+      background: #111;
+      border: 2px solid #0af;
+      color: #0af;
       font-size: 20px;
       font-weight: bold;
       padding: 14px 28px;
-      border: none;
-      border-radius: 10px;
-      margin-top: 20px;
+      border-radius: 14px;
+      margin-top: 25px;
       cursor: pointer;
+      transition: transform 0.1s, background 0.2s, color 0.2s;
+      box-shadow: 0 4px 20px rgba(0,170,255,0.4);
     }
-    #startNFC:active { background: #06c; }
+    #startNFC:hover {
+      background: #0af;
+      color: #000;
+    }
+    #startNFC:active {
+      transform: scale(0.95);
+    }
   </style>
 </head>
 <body>
@@ -171,7 +203,7 @@
       }
 
       if (!found) {
-        balance = 20; // defaultní kredit
+        balance = 20;
         currency = "CZK";
         writeCard(balance, currency);
         log("Karta inicializována (20 Kč).");
