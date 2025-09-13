@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<title>NFC Terminál V2 - beta</title>
+<title>NFC Terminál V2</title>
 <style>
   body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:#0a0a0a; color:#fff; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:40px 20px; }
   h1 { font-size:36px; margin-bottom:30px; color:#0af; text-align:center; }
@@ -21,7 +21,7 @@
 </style>
 </head>
 <body>
-<h1>NFC Terminál Demo (šifrovaný)</h1>
+<h1>NFC Terminál V2</h1>
 
 <div class="card" id="screen">
   <div>Zůstatek:</div>
@@ -59,6 +59,7 @@ let balance = null;
 let currency = "CZK";
 let pendingAction = null;
 let amount = 0;
+let busy = false; // blokace během operace
 const SECRET_KEY = "demo123"; // tajný klíč pro XOR šifru
 
 function log(msg, success=true) {
@@ -93,7 +94,10 @@ async function initNFC() {
   }
 }
 
-function handleReading(event) {
+async function handleReading(event) {
+  if (busy) return; // pokud už probíhá akce, ignoruj další čtení
+  busy = true;
+
   let found = false;
   for(const record of event.message.records){
     if(record.mediaType==="application/json"){
@@ -113,7 +117,7 @@ function handleReading(event) {
   if(!found){
     balance = 20;
     currency = "CZK";
-    writeCard(balance,currency);
+    await writeCard(balance,currency);
     log("Karta inicializována (20 Kč).");
   } else {
     log("Karta načtena.");
@@ -124,18 +128,22 @@ function handleReading(event) {
     if(pendingAction==="pay"){
       if(balance >= amount){
         balance -= amount;
-        writeCard(balance,currency);
+        await writeCard(balance,currency);
         log("Platba "+amount+" Kč proběhla.");
-      } else log("Nedostatek prostředků!",false);
+      } else {
+        log("Nedostatek prostředků!",false);
+      }
     } else if(pendingAction==="topup"){
       balance += amount;
-      writeCard(balance,currency);
+      await writeCard(balance,currency);
       log("Dobito "+amount+" Kč.");
     }
     updateDisplay();
     pendingAction = null;
     clearInput();
   }
+
+  busy = false; // odblokuj další čtení
 }
 
 async function writeCard(bal,cur){
@@ -186,3 +194,4 @@ document.getElementById("startNFC").addEventListener("click",initNFC);
 </script>
 </body>
 </html>
+
