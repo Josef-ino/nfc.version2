@@ -800,7 +800,7 @@ function pinBackspace() {
 function confirmPin() {
   const pin = document.getElementById("pinInput").value;
   if (pin.length !== 4) {
-    alert("PIN musí mít 4 číslice!");
+    setStatus("PIN musí mít 4 číslice!", "error");
     return;
   }
   
@@ -831,7 +831,7 @@ function confirmPin() {
         setStatus("Přiložte kartu k zapsání odemčení...", "info");
       }
     } else {
-      alert("Nesprávný PIN!");
+      setStatus("Nesprávný PIN!", "error");
       pinClear();
     }
   }
