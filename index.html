@@ -139,7 +139,7 @@ async function handleReading(event) {
     // prohlédneme záznamy
     for (const record of event.message.records) {
       // očekáváme, že uložený záznam je base64(XOR(payload))
-      if (record.mediaType === "application/json" || record.recordType === "mime") {
+      if (record.recordType === "mime" && record.mediaType === "application/json") {
         // record.data by měl být ArrayBuffer / Uint8Array
         let base64Str;
         try {
@@ -160,6 +160,7 @@ async function handleReading(event) {
             currency = obj.c;
             balance = obj.b;
             found = true;
+            break; // našli jsme záznam, ukončíme cyklus
           }
         } catch (e) {
           // ignore malformed record
