@@ -4,23 +4,294 @@
 <meta charset="UTF-8" />
 <title>NFC Terminál V2 (stabilní)</title>
 <style>
-  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:#0a0a0a; color:#fff; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:40px 20px; }
-  h1 { font-size:36px; margin-bottom:30px; color:#0af; text-align:center; }
-  .card { background:#111; border-radius:20px; padding:25px; margin-bottom:25px; box-shadow:0 0 25px rgba(0,170,255,0.12); text-align:center; }
-  #screen { width:360px; }
-  #balance { font-size:32px; font-weight:bold; margin:15px 0; color:#0af; }
-  #status { font-size:16px; color:#bbb; min-height:28px; margin-top:12px; }
-  #status.info { color:#0af; }     /* cyan */
-  #status.success { color:#2ecc71; }/* green */
-  #status.error { color:#ff6b6b; }  /* red */
-  #amountInput { font-size:28px; text-align:center; border:2px solid #0af; border-radius:14px; padding:12px; margin:20px 0; width:220px; background:#000; color:#0af; }
-  #keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; width:260px; margin:0 auto 25px auto; }
-  .key { background:#0af; color:#000; font-size:22px; font-weight:bold; padding:18px; border:none; border-radius:16px; cursor:pointer; transition: background 0.2s, transform 0.1s; box-shadow:0 0 12px rgba(0,170,255,0.18); }
-  .key:active { background:#06c; transform:scale(0.95); }
-  #controls { display:flex; justify-content:center; gap:20px; margin-top:15px; }
-  button.action, #startNFC { background:#0af; color:#000; font-size:18px; font-weight:bold; padding:14px 24px; border:none; border-radius:16px; cursor:pointer; transition: background 0.2s, transform 0.1s; box-shadow:0 0 15px rgba(0,170,255,0.2); }
-  button.action:active, #startNFC:active { background:#06c; transform:scale(0.95); }
-  #startNFC[disabled] { opacity:0.5; cursor:not-allowed; box-shadow:none; }
+  * { box-sizing: border-box; }
+  body { 
+    margin: 0; 
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif; 
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+    background-attachment: fixed;
+    color: #fff; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    padding: 40px 20px;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(0, 170, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(0, 170, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  h1 { 
+    font-size: 42px; 
+    font-weight: 700;
+    margin-bottom: 40px; 
+    background: linear-gradient(135deg, #00d4ff 0%, #0af 50%, #0088ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 0 40px rgba(0, 170, 255, 0.3);
+  }
+  .card { 
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(17, 17, 17, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 170, 255, 0.2);
+    border-radius: 24px; 
+    padding: 32px; 
+    margin-bottom: 28px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(0, 170, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 
+                0 0 0 1px rgba(0, 170, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  #screen { 
+    width: 380px; 
+    max-width: 100%;
+  }
+  #screen > div:first-child {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  #balance { 
+    font-size: 48px; 
+    font-weight: 700; 
+    margin: 12px 0 20px 0; 
+    background: linear-gradient(135deg, #00d4ff 0%, #0af 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+  }
+  #status { 
+    font-size: 15px; 
+    color: rgba(255, 255, 255, 0.7); 
+    min-height: 32px; 
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  #status.info { 
+    color: #0af;
+    background: rgba(0, 170, 255, 0.1);
+  }
+  #status.success { 
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.1);
+  }
+  #status.error { 
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+  }
+  #amountInput { 
+    font-size: 32px; 
+    font-weight: 600;
+    text-align: center; 
+    border: 2px solid rgba(0, 170, 255, 0.3); 
+    border-radius: 16px; 
+    padding: 16px 20px; 
+    margin: 24px 0; 
+    width: 100%; 
+    max-width: 280px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #0af;
+    transition: all 0.3s;
+    letter-spacing: 2px;
+  }
+  #amountInput:focus {
+    outline: none;
+    border-color: #0af;
+    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.1);
+  }
+  #keypad { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    width: 100%;
+    max-width: 300px; 
+    margin: 0 auto 28px auto; 
+  }
+  .key { 
+    background: linear-gradient(135deg, #00d4ff 0%, #0af 100%);
+    color: #000; 
+    font-size: 24px; 
+    font-weight: 700; 
+    padding: 20px; 
+    border: none; 
+    border-radius: 16px; 
+    cursor: pointer; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .key::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .key:hover::before {
+    opacity: 1;
+  }
+  .key:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 170, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  .key:active { 
+    transform: scale(0.95) translateY(0); 
+    box-shadow: 0 2px 8px rgba(0, 170, 255, 0.3);
+  }
+  #controls { 
+    display: flex; 
+    justify-content: center; 
+    gap: 16px; 
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  button.action { 
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff; 
+    font-size: 17px; 
+    font-weight: 700; 
+    padding: 16px 32px; 
+    border: none; 
+    border-radius: 16px; 
+    cursor: pointer; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  button.action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  button.action:hover::before {
+    opacity: 1;
+  }
+  button.action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(46, 204, 113, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  button.action:active { 
+    transform: scale(0.95) translateY(0); 
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+  }
+  button.action:first-child {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  button.action:first-child:hover {
+    box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  button.action:first-child:active {
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+  }
+  #startNFC { 
+    background: linear-gradient(135deg, #00d4ff 0%, #0af 100%);
+    color: #000; 
+    font-size: 18px; 
+    font-weight: 700; 
+    padding: 18px 40px; 
+    border: none; 
+    border-radius: 50px; 
+    cursor: pointer; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 6px 20px rgba(0, 170, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    overflow: hidden;
+  }
+  #startNFC::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  #startNFC:hover::before {
+    opacity: 1;
+  }
+  #startNFC:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 170, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  #startNFC:active { 
+    transform: scale(0.95) translateY(0); 
+    box-shadow: 0 3px 12px rgba(0, 170, 255, 0.4);
+  }
+  #startNFC[disabled] { 
+    opacity: 0.4; 
+    cursor: not-allowed; 
+    box-shadow: none;
+    transform: none;
+  }
+  #startNFC[disabled]::before {
+    opacity: 0;
+  }
+  @media (max-width: 480px) {
+    h1 { font-size: 32px; }
+    #screen { width: 100%; }
+    #balance { font-size: 40px; }
+    #amountInput { font-size: 28px; }
+    .card { padding: 24px; }
+  }
 </style>
 </head>
 <body>
